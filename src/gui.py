@@ -5,6 +5,7 @@ import logging as l
 ## General styles
 frame_padding = 10
 button_padding = 5
+label_padding = 5
 
 def init():
     global messages_frame, info_frame
@@ -37,10 +38,13 @@ def init():
     action_frame = ctk.CTkFrame(root)
     action_frame.grid(row=1, column=0, columnspan=2, sticky="ew", padx=frame_padding, pady=frame_padding)
 
+    ## Action frame elements
+
     ## Text input button
     text_input_button = ctk.CTkButton(action_frame, text="Open Text Input", command=open_text_input)
     text_input_button.pack(side="left", expand=True, pady=button_padding)
 
+    ## Settings button
     settings_button = ctk.CTkButton(action_frame, text="Open Settings")
     settings_button.pack(side="left", expand=True, pady=button_padding)
 
@@ -52,8 +56,13 @@ def init():
     quit_button = ctk.CTkButton(action_frame, text="Quit")
     quit_button.pack(side="left", expand=True, pady=button_padding)
 
+    ## Info frame elements
+
+    ## Waiting label
+    waiting_label = ctk.CTkLabel(info_frame, text="Waiting for messages...", wraplength=200, justify="left", anchor="w")
+    waiting_label.pack(fill="x", padx=5, pady=5)
+
     ## Start GUI loop
-    update_messages()
     root.update()
     root.mainloop()
 
@@ -74,30 +83,71 @@ def open_text_input():
 
 last_message = 0
 def update_messages():
+    """
+    Updates the messages displayed in the GUI and refreshes the information frame 
+    with details about the last message.
+    """
     global last_message
     l.debug(f"Updating messages from {last_message}...")
+
+    def get_role_and_content(msg):
+        """
+        Extracts the role and content from a message object.
+
+        Args:
+            msg (Union[dict, object]): The message object, which can either be a dictionary
+                or an object with 'role' and 'content' attributes.
+
+        Returns:
+            tuple: A tuple containing the role (str) and content (str) of the message.
+                If the message is a dictionary, the 'role' key defaults to "unknown" 
+                and the 'content' key defaults to an empty string if not present.
+        """
+        if isinstance(msg, dict):
+            return msg.get("role", "unknown"), msg.get("content", "")
+        else:
+            return msg.role, msg.content
+
     if last_message < len(var.messages):
         ## Update messages frame
         for msg in var.messages[last_message:]:
-            # Get role and content depending on message structure
-            if isinstance(msg, dict):
-                role = msg.get("role", "unknown")
-                content = msg.get("content", "")
-            else:
-                # We assume it's a ChatCompletionMessage object
-                role = msg.role
-                content = msg.content
+            role, content = get_role_and_content(msg)
 
             text_alignment = "e" if role == "user" else "w"
             icon = "👤" if role == "user" else "✨"
             msg_label = ctk.CTkLabel(messages_frame, text=f" {icon} {role.capitalize()}: {content}", wraplength=400, justify="left", anchor=text_alignment)
             msg_label.pack(fill="x", padx=5, pady=5)
 
-        # Update info frame with the last message
-        # last_msg = var.messages[-1]
-        # info_label = ctk.CTkLabel(info_frame, text=f"Role: {last_msg['role']}\nContent: {last_msg['content']}", wraplength=200, justify="left", anchor="w")
-        # info_label.pack(fill="x", padx=5, pady=5)
+        ## Update info frame with the last message
+        if len(var.messages) < 2:
+            return  # Not enough messages to display info
+        last_msg = var.messages[-1] if get_role_and_content(var.messages[-1])[0] != "system" else var.messages[-2]
+        role, content = get_role_and_content(last_msg)
 
+        ## Info frame elements
+
+        ## Delete old labels
+        for widget in info_frame.winfo_children():
+            widget.destroy()
+
+        if hasattr(var, 'last_completion') and var.last_completion:
+            lc = var.last_completion
+            ## Model label
+            model_label = ctk.CTkLabel(info_frame, text=f"Model: {getattr(lc, 'model', 'N/A')}", wraplength=200, justify="left", anchor="w")
+            model_label.pack(fill="x", padx=label_padding, pady=label_padding)
+
+            ## Provider label
+            provider_label = ctk.CTkLabel(info_frame, text=f"Provider: {getattr(lc, 'provider', 'N/A')}", wraplength=200, justify="left", anchor="w")
+            provider_label.pack(fill="x", padx=label_padding, pady=label_padding)
+
+            ## Cost label
+            cost_label = ctk.CTkLabel(info_frame, text=f"Cost: {getattr(lc, 'cost', 'N/A')}", wraplength=200, justify="left", anchor="w")
+            cost_label.pack(fill="x", padx=label_padding, pady=label_padding)
+
+            ## BYOK label
+            byok_label = ctk.CTkLabel(info_frame, text=f"Is BYOK: {getattr(lc, 'is_byok', 'N/A')}", wraplength=200, justify="left", anchor="w")
+            byok_label.pack(fill="x", padx=label_padding, pady=label_padding)
+        
         last_message = len(var.messages)
         l.debug(f"Updated messages to {last_message} entries.")
     

@@ -8,14 +8,13 @@ client_openrouter = OpenAI(
 )
 
 def reply(prompt=None):
-
     model = var.OPENROUTER_MODEL
     if not var.openrouter_available or not model:
         raise Exception("OpenRouter is not available. Please check your API key and model configuration.")
     
     if prompt:
         var.messages.append({"role": "user", "content": prompt})
-        l.info(f"Replying to prompt: {prompt}")
+        l.debug(f"Replying to prompt: {prompt}")
     elif var.messages[-1]["role"] != "user":
         raise Exception("No prompt provided and the last message is not from the user.")
 
@@ -24,5 +23,8 @@ def reply(prompt=None):
         messages=var.messages
     )
 
+    l.debug(f"Completion response: {completion}")
+
+    var.last_completion = completion
     var.messages.append(completion.choices[0].message)
     gui.update_messages()
