@@ -1,4 +1,8 @@
-# Assistant Revamped
+# Assistant Revamped (Python) ABANDONED
+
+This project has been abandoned and is no longer maintained. Check out the new version, remade with Flutter.
+
+-----
 
 A Python-based assistant application using OpenRouter for AI completions.
 
