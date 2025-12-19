@@ -1,0 +1,12 @@
+[project]
+name = "assistant-revamped"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "customtkinter>=5.2.2",
+    "logging>=0.4.9.6",
+    "openrouter>=0.1.1",
+    "python-dotenv>=1.2.1",
+]

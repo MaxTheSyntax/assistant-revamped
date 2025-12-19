@@ -1,4 +1,5 @@
 import gui
+import common
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -8,6 +9,7 @@ for logger_name in logging.root.manager.loggerDict:
 
 def main():
     gui.init()
+    common.init()
 
 if __name__ == "__main__":
     main()

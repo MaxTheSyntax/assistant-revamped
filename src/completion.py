@@ -1,30 +1,30 @@
-from openai import OpenAI
+from openrouter import OpenRouter
+from openrouter.components import UserMessage
 import logging as l
-import var, gui
+import gui
+import common as c
 
-client_openrouter = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=var.OPENROUTER_API_KEY
+client_openrouter = OpenRouter(
+    api_key=c.OPENROUTER_API_KEY
 )
 
 def reply(prompt=None):
-    model = var.OPENROUTER_MODEL
-    if not var.openrouter_available or not model:
+    model = c.OPENROUTER_MODEL
+    if not c.openrouter_available or not model:
         raise Exception("OpenRouter is not available. Please check your API key and model configuration.")
     
     if prompt:
-        var.messages.append({"role": "user", "content": prompt})
+        c.chat.append(UserMessage(content=prompt))
         l.debug(f"Replying to prompt: {prompt}")
-    elif var.messages[-1]["role"] != "user":
+    elif type(c.chat[-1]) != UserMessage:
         raise Exception("No prompt provided and the last message is not from the user.")
 
-    completion = client_openrouter.chat.completions.create(
+    completion = client_openrouter.chat.send(
         model=model,
-        messages=var.messages
+        messages = c.chat_dict()
     )
 
     l.debug(f"Completion response: {completion}")
 
-    var.last_completion = completion
-    var.messages.append(completion.choices[0].message)
+    c.chat.append(completion)
     gui.update_messages()

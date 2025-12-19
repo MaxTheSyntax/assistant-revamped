@@ -1,4 +1,0 @@
-customtkinter
-python-dotenv
-openai>=0.27.6
-logging

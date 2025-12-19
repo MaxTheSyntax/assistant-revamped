@@ -1,5 +1,6 @@
 import customtkinter as ctk
-import completion, var
+import completion
+import common as c
 import logging as l
 
 ## General styles
@@ -8,6 +9,8 @@ button_padding = 5
 label_padding = 5
 
 def init():
+    """Initializes the GUI application. Runs the main loop."""
+
     global messages_frame, info_frame
 
     root = ctk.CTk()
@@ -108,9 +111,9 @@ def update_messages():
         else:
             return msg.role, msg.content
 
-    if last_message < len(var.messages):
+    if last_message < len(c.chat):
         ## Update messages frame
-        for msg in var.messages[last_message:]:
+        for msg in c.chat[last_message:]:
             role, content = get_role_and_content(msg)
 
             text_alignment = "e" if role == "user" else "w"
@@ -119,9 +122,9 @@ def update_messages():
             msg_label.pack(fill="x", padx=5, pady=5)
 
         ## Update info frame with the last message
-        if len(var.messages) < 2:
+        if len(c.chat) < 2:
             return  # Not enough messages to display info
-        last_msg = var.messages[-1] if get_role_and_content(var.messages[-1])[0] != "system" else var.messages[-2]
+        last_msg = c.chat[-1] if get_role_and_content(c.chat[-1])[0] != "system" else c.chat[-2]
         role, content = get_role_and_content(last_msg)
 
         ## Info frame elements
@@ -130,24 +133,24 @@ def update_messages():
         for widget in info_frame.winfo_children():
             widget.destroy()
 
-        if hasattr(var, 'last_completion') and var.last_completion:
-            lc = var.last_completion
-            ## Model label
-            model_label = ctk.CTkLabel(info_frame, text=f"Model: {getattr(lc, 'model', 'N/A')}", wraplength=200, justify="left", anchor="w")
-            model_label.pack(fill="x", padx=label_padding, pady=label_padding)
+        lc = getattr(last_msg, 'logit_config', None)
 
-            ## Provider label
-            provider_label = ctk.CTkLabel(info_frame, text=f"Provider: {getattr(lc, 'provider', 'N/A')}", wraplength=200, justify="left", anchor="w")
-            provider_label.pack(fill="x", padx=label_padding, pady=label_padding)
+        ## Model label
+        model_label = ctk.CTkLabel(info_frame, text=f"Model: {getattr(lc, 'model', 'N/A')}", wraplength=200, justify="left", anchor="w")
+        model_label.pack(fill="x", padx=label_padding, pady=label_padding)
 
-            ## Cost label
-            cost_label = ctk.CTkLabel(info_frame, text=f"Cost: {getattr(lc, 'cost', 'N/A')}", wraplength=200, justify="left", anchor="w")
-            cost_label.pack(fill="x", padx=label_padding, pady=label_padding)
+        ## Provider label
+        provider_label = ctk.CTkLabel(info_frame, text=f"Provider: {getattr(lc, 'provider', 'N/A')}", wraplength=200, justify="left", anchor="w")
+        provider_label.pack(fill="x", padx=label_padding, pady=label_padding)
 
-            ## BYOK label
-            byok_label = ctk.CTkLabel(info_frame, text=f"Is BYOK: {getattr(lc, 'is_byok', 'N/A')}", wraplength=200, justify="left", anchor="w")
-            byok_label.pack(fill="x", padx=label_padding, pady=label_padding)
+        ## Cost label
+        cost_label = ctk.CTkLabel(info_frame, text=f"Cost: {getattr(lc, 'cost', 'N/A')}", wraplength=200, justify="left", anchor="w")
+        cost_label.pack(fill="x", padx=label_padding, pady=label_padding)
+
+        ## BYOK label
+        byok_label = ctk.CTkLabel(info_frame, text=f"Is BYOK: {getattr(lc, 'is_byok', 'N/A')}", wraplength=200, justify="left", anchor="w")
+        byok_label.pack(fill="x", padx=label_padding, pady=label_padding)
         
-        last_message = len(var.messages)
+        last_message = len(c.chat)
         l.debug(f"Updated messages to {last_message} entries.")
     
